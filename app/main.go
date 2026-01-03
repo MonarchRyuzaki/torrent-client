@@ -25,67 +25,88 @@ func findFirstIndex(s string, r rune) int {
 	return firstIdx
 }
 
-// Example:
-// - 5:hello -> hello
-// - 10:hello12345 -> hello12345
-// - i52e -> 52
-// - i-52e -> -52
-// - ["hello", 52] -> l 5:hello i52e e (no spaces)
-func decodeBencode(bencodedString string) (interface{}, error) {
+/*
+	 Example:
+		- i52e -> 52
+		- i-52e -> -52
+*/
+func decodeInt(s string) (int, int, error) {
+	firstEIndex := findFirstIndex(s, rune('e'))
+
+	num, err := strconv.Atoi(s[1:firstEIndex])
+	if err != nil {
+		return 0, 0, err
+	}
+	len := firstEIndex + 1
+	return num, len, nil
+}
+
+/*
+	 Example:
+		- 5:hello -> hello
+		- 10:hello12345 -> hello12345
+*/
+func decodeString(s string) (string, int, error) {
+	firstColonIndex := findFirstIndex(s, rune(':'))
+
+	lengthStr := s[:firstColonIndex]
+	length, err := strconv.Atoi(lengthStr)
+	if err != nil {
+		return "", 0, err
+	}
+	len := len(lengthStr) + length + 1
+	return s[firstColonIndex+1 : firstColonIndex+1+length], len, nil
+}
+
+/*
+	 Example:
+		- ["hello", 52] -> l 5:hello i52e e (no spaces)
+*/
+func decodeList(bencodedString string) ([]interface{}, int, error) {
+	decodedList := make([]interface{}, 0)
+	ptr := 1
+	for ptr < len(bencodedString) {
+		// fmt.Println(ptr, len(bencodedString))
+		if bencodedString[ptr] == 'e' {
+			return decodedList, ptr + 1, nil
+		}
+		item, lengthProcessed, err := decodeBencode(bencodedString[ptr:])
+		if err != nil {
+			return nil, 0, err
+		}
+		decodedList = append(decodedList, item)
+		ptr += lengthProcessed
+	}
+	return nil, 0, fmt.Errorf("unterminated list")
+}
+
+func decodeBencode(bencodedString string) (interface{}, int, error) {
 	if unicode.IsDigit(rune(bencodedString[0])) {
-		firstColonIndex := findFirstIndex(bencodedString, rune(':'))
+		str, len, err := decodeString(bencodedString)
 
-		lengthStr := bencodedString[:firstColonIndex]
-		length, err := strconv.Atoi(lengthStr)
 		if err != nil {
-			return "", err
+			return "", 0, err
 		}
 
-		return bencodedString[firstColonIndex+1 : firstColonIndex+1+length], nil
+		return str, len, err
 	} else if rune(bencodedString[0]) == rune('i') {
-		firstEIndex := findFirstIndex(bencodedString, rune('e'))
+		num, len, err := decodeInt(bencodedString)
 
-		num, err := strconv.Atoi(bencodedString[1:firstEIndex])
 		if err != nil {
-			return "", err
+			return "", 0, err
 		}
 
-		return num, nil
+		return num, len, err
 	} else if rune(bencodedString[0]) == rune('l') {
-		decodedList := make([]interface{}, 0)
-		ptr := 1
-		for ptr < len(bencodedString) {
-			if unicode.IsDigit(rune(bencodedString[ptr])) {
-				str, err := decodeBencode(bencodedString[ptr:])
-				if err != nil {
-					return "", err
-				}
-				if x, ok := str.(string); !ok {
-					return "", fmt.Errorf("%v is not a string", x)
-				}
-				strValue := str.(string)
-				decodedList = append(decodedList, strValue)
-				ptr += 1 + len(fmt.Sprint(len(strValue))) + len(strValue)
-			} else if rune(bencodedString[ptr]) == rune('i') {
-				num, err := decodeBencode(bencodedString[ptr:])
-				if err != nil {
-					return "", err
-				}
-				if x, ok := num.(int); !ok {
-					return "", fmt.Errorf("%v is not a string", x)
-				}
-				value := num.(int)
-				decodedList = append(decodedList, value)
-				ptr += len(fmt.Sprint(value)) + 2
-			} else if rune(bencodedString[ptr]) == rune('e') {
-				ptr++
-			} else {
-				return "", fmt.Errorf("Only strings, integers are supported at the moment")
-			}
+		list, len, err := decodeList(bencodedString)
+
+		if err != nil {
+			return "", 0, err
 		}
-		return decodedList, nil
+
+		return list, len, err
 	} else {
-		return "", fmt.Errorf("Only strings, integers, lists are supported at the moment")
+		return "", 0, fmt.Errorf("Only strings, integers, lists are supported at the moment")
 	}
 }
 
@@ -100,7 +121,7 @@ func main() {
 		//
 		bencodedValue := os.Args[2]
 
-		decoded, err := decodeBencode(bencodedValue)
+		decoded, _, err := decodeBencode(bencodedValue)
 		if err != nil {
 			fmt.Println(err)
 			return
