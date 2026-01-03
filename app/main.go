@@ -12,21 +12,28 @@ import (
 // Ensures gofmt doesn't remove the "os" encoding/json import (feel free to remove this!)
 var _ = json.Marshal
 
+func findFirstIndex(s string, r rune) int {
+	var firstIdx int
+
+	for i := 0; i < len(s); i++ {
+		if rune(s[i]) == r {
+			firstIdx = i
+			break
+		}
+	}
+
+	return firstIdx
+}
+
 // Example:
 // - 5:hello -> hello
 // - 10:hello12345 -> hello12345
 // - i52e -> 52
 // - i-52e -> -52
+// - ["hello", 52] -> l 5:hello i52e e (no spaces)
 func decodeBencode(bencodedString string) (interface{}, error) {
 	if unicode.IsDigit(rune(bencodedString[0])) {
-		var firstColonIndex int
-
-		for i := 0; i < len(bencodedString); i++ {
-			if bencodedString[i] == ':' {
-				firstColonIndex = i
-				break
-			}
-		}
+		firstColonIndex := findFirstIndex(bencodedString, rune(';'))
 
 		lengthStr := bencodedString[:firstColonIndex]
 
@@ -37,14 +44,7 @@ func decodeBencode(bencodedString string) (interface{}, error) {
 
 		return bencodedString[firstColonIndex+1 : firstColonIndex+1+length], nil
 	} else if rune(bencodedString[0]) == rune('i') {
-		var firstEIndex int
-
-		for i := 0; i < len(bencodedString); i++ {
-			if bencodedString[i] == 'e' {
-				firstEIndex = i
-				break
-			}
-		}
+		firstEIndex := findFirstIndex(bencodedString, rune('e'))
 
 		num, err := strconv.Atoi(bencodedString[1:firstEIndex])
 		if err != nil {
@@ -52,8 +52,12 @@ func decodeBencode(bencodedString string) (interface{}, error) {
 		}
 
 		return num, nil
+	} else if rune(bencodedString[0]) == rune('l') {
+		firstEIndex := findFirstIndex(bencodedString, rune('e'))
+
+		
 	} else {
-		return "", fmt.Errorf("Only strings, integers are supported at the moment")
+		return "", fmt.Errorf("Only strings, integers, lists are supported at the moment")
 	}
 }
 
