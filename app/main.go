@@ -155,7 +155,8 @@ func main() {
 
 	command := os.Args[1]
 
-	if command == "decode" {
+	switch command {
+	case "decode":
 		// TODO: Uncomment the code below to pass the first stage
 		//
 		bencodedValue := os.Args[2]
@@ -168,7 +169,22 @@ func main() {
 
 		jsonOutput, _ := json.Marshal(decoded)
 		fmt.Println(string(jsonOutput))
-	} else {
+	case "info":
+		torrentFile := os.Args[2]
+		bencodedValue, err := os.ReadFile(torrentFile)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		decoded, _, err := decodeBencode(string(bencodedValue))
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		jsonOutput, _ := json.Marshal(decoded)
+		fmt.Println(string(jsonOutput))
+	default:
 		fmt.Println("Unknown command: " + command)
 		os.Exit(1)
 	}
