@@ -190,6 +190,32 @@ func main() {
 			return
 		}
 		fmt.Println(tf)
+	case "peers":
+		torrentFile := os.Args[2]
+		bencodedValue, err := os.ReadFile(torrentFile)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		torrentInfo := BencodeFile{}
+		e := bencode.Unmarshal(strings.NewReader(string(bencodedValue)), &torrentInfo)
+		if e != nil {
+			fmt.Println(e)
+			return
+		}
+		tf, e := torrentInfo.toTorrentFile()
+		if e != nil {
+			fmt.Println(e)
+			return
+		}
+		peers, e := tf.getPeers()
+		if e != nil {
+			fmt.Println(e)
+			return
+		}
+		for _, peer := range peers {
+			fmt.Println(peer.String())
+		}
 	default:
 		fmt.Println("Unknown command: " + command)
 		os.Exit(1)

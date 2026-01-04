@@ -2,8 +2,10 @@ package main
 
 import (
 	"crypto/sha1"
+	"encoding/binary"
 	"fmt"
 	"log"
+	"net"
 	"strings"
 
 	"github.com/jackpal/bencode-go"
@@ -19,6 +21,11 @@ type BencodeInfo struct {
 type BencodeFile struct {
 	Announce string      `bencode:"announce"`
 	Info     BencodeInfo `bencode:"info"`
+}
+
+type TrackerResponse struct {
+	Interval int    `bencode:"interval"`
+	Peers    string `bencode:"peers"`
 }
 
 func (bf *BencodeFile) toTorrentFile() (*TorrentFile, error) {
@@ -76,4 +83,27 @@ func calculateInfoHash(info BencodeInfo) ([20]byte, error) {
 	}
 	hashInBytes := h.Sum(nil)
 	return [20]byte(hashInBytes), nil
+}
+
+func (tr *TrackerResponse) extractPeerIps() ([]Peer, error) {
+
+	const PeerSize = 6
+	if len(tr.Peers)%PeerSize != 0 {
+		return nil, fmt.Errorf("malformed peers")
+	}
+	numPeers := len(tr.Peers) / PeerSize
+	peers := make([]Peer, 0)
+
+	for i := range numPeers {
+		start := i * PeerSize
+		end := start + PeerSize
+		chunk := []byte(tr.Peers[start:end])
+		newPeer := Peer{
+			IP:   net.IPv4(chunk[0], chunk[1], chunk[2], chunk[3]),
+			Port: uint16(binary.BigEndian.Uint16(chunk[4:6])),
+		}
+		peers = append(peers, newPeer)
+	}
+
+	return peers, nil
 }
