@@ -241,8 +241,41 @@ func main() {
 		}
 		handshake.prepareHandshakeMessage()
 		for _, peer := range peers {
-			peer.handleHandshake()
-			fmt.Printf(peer.String())
+			peer.Download(tf, 0)
+			fmt.Printf("%s", peer.String())
+		}
+	case "download_piece":
+		torrentFile := os.Args[2]
+		piece_index, err := strconv.Atoi(os.Args[3])
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		bencodedValue, err := os.ReadFile(torrentFile)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		torrentInfo := BencodeFile{}
+		e := bencode.Unmarshal(strings.NewReader(string(bencodedValue)), &torrentInfo)
+		if e != nil {
+			fmt.Println(e)
+			return
+		}
+		tf, e := torrentInfo.toTorrentFile()
+		if e != nil {
+			fmt.Println(e)
+			return
+		}
+		peers, er := tf.getPeers()
+		if er != nil {
+			fmt.Println(er)
+			return
+		}
+		handshake.prepareHandshakeMessage()
+		for _, peer := range peers {
+			peer.Download(tf, piece_index)
+			fmt.Printf("%s", peer.String())
 		}
 	default:
 		fmt.Println("Unknown command: " + command)
