@@ -99,7 +99,7 @@ func (p *Peer) Download(tf *TorrentFile, piece_index int) {
 
 		binary.BigEndian.PutUint32(blockPayload[0:4], uint32(piece_index))
 		binary.BigEndian.PutUint32(blockPayload[4:8], uint32(begin))
-		binary.BigEndian.PutUint32(blockPayload[7:12], uint32(blockLength))
+		binary.BigEndian.PutUint32(blockPayload[8:12], uint32(blockLength))
 		fmt.Printf("Requesting: Index: %d, Begin: %d, Length: %d\n", piece_index, begin, blockLength)
 		err := SendMessage(conn, 6, blockPayload)
 		if err != nil {
