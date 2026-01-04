@@ -80,7 +80,38 @@ func decodeList(bencodedString string) ([]interface{}, int, error) {
 	return nil, 0, fmt.Errorf("unterminated list")
 }
 
+/*
+	 Example:
+		- d3:foo3:bar5:helloi52ee -> {"foo":"bar","hello":52}
+*/
+func decodeDict(bencodedString string) (map[string]interface{}, int, error) {
+	decodedMap := make(map[string]interface{})
+	ptr := 1
+	key := "!@#"
+	for ptr < len(bencodedString) {
+		if bencodedString[ptr] == 'e' {
+			return decodedMap, ptr + 1, nil
+		}
+		item, lengthProcessed, err := decodeBencode(bencodedString[ptr:])
+		if err != nil {
+			return nil, 0, err
+		}
+		if key == "!@#" {
+			if _, ok := item.(string); !ok {
+				return nil, 0, fmt.Errorf("Key is not a string")
+			}
+			key = item.(string)
+		} else {
+			decodedMap[key] = item
+			key = "!@#"
+		}
+		ptr += lengthProcessed
+	}
+	return nil, 0, fmt.Errorf("unterminated dict")
+}
+
 func decodeBencode(bencodedString string) (interface{}, int, error) {
+	// fmt.Println(bencodedString)
 	if unicode.IsDigit(rune(bencodedString[0])) {
 		str, len, err := decodeString(bencodedString)
 
@@ -105,8 +136,16 @@ func decodeBencode(bencodedString string) (interface{}, int, error) {
 		}
 
 		return list, len, err
+	} else if rune(bencodedString[0]) == rune('d') {
+		mpp, len, err := decodeDict(bencodedString)
+
+		if err != nil {
+			return "", 0, err
+		}
+
+		return mpp, len, err
 	} else {
-		return "", 0, fmt.Errorf("Only strings, integers, lists are supported at the moment")
+		return "", 0, fmt.Errorf("Only strings, integers, lists and dictionary are supported at the moment")
 	}
 }
 
