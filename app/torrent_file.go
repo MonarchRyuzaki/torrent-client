@@ -75,6 +75,7 @@ func (tf *TorrentFile) getPeers() ([]Peer, error) {
 	if err != nil {
 		return nil, err
 	}
+	handshake.PeerID = [20]byte(peerId)
 	trackerUrl, err := tf.buildTrackerUrl([20]byte(peerId))
 	if err != nil {
 		return nil, err

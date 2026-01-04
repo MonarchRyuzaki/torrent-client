@@ -46,6 +46,7 @@ func (bf *BencodeFile) toTorrentFile() (*TorrentFile, error) {
 		return nil, err
 	}
 	tf.InfoHash = infoHash
+	handshake.InfoHash = infoHash
 
 	return &tf, nil
 }
