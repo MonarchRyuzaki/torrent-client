@@ -184,8 +184,12 @@ func main() {
 			fmt.Println(e)
 			return
 		}
-		jsonOutput, _ := json.Marshal(torrentInfo)
-		fmt.Println(string(jsonOutput))
+		tf, e := torrentInfo.toTorrentFile()
+		if e != nil {
+			fmt.Println(e)
+			return
+		}
+		fmt.Println(tf)
 	default:
 		fmt.Println("Unknown command: " + command)
 		os.Exit(1)
