@@ -108,12 +108,20 @@ func (p *Peer) Download(tf *TorrentFile, piece_index int) {
 		}
 	}
 
-	for i := range numBlocks {
+	for i := 0; i < numBlocks; {
 		var _ = i
 		msg, err := ReadMessage(conn)
 		if err != nil {
 			fmt.Println(err)
 			return
+		}
+		if msg == nil {
+			fmt.Printf("Received Keep Alive")
+			continue
+		}
+
+		if msg.ID != 7 {
+			continue
 		}
 		// block_index := binary.BigEndian.Uint32(msg.Payload[0:4])
 		block_begin := binary.BigEndian.Uint32(msg.Payload[4:8])
@@ -124,6 +132,7 @@ func (p *Peer) Download(tf *TorrentFile, piece_index int) {
 		block_data := msg.Payload[8:]
 
 		copy(buf[block_begin:block_begin+uint32(block_length)], block_data)
+		i++
 	}
 
 	ok, err := verifyIntegrityOfPiece(buf, tf.PieceHashes[piece_index])
