@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"unicode"
-	// bencode "github.com/jackpal/bencode-go" // Available if you need it!
+
+	bencode "github.com/jackpal/bencode-go" // Available if you need it!
 )
 
 // Ensures gofmt doesn't remove the "os" encoding/json import (feel free to remove this!)
@@ -176,13 +178,13 @@ func main() {
 			fmt.Println(err)
 			return
 		}
-
-		decoded, _, err := decodeBencode(string(bencodedValue))
-		if err != nil {
-			fmt.Println(err)
+		torrentInfo := BencodeFile{}
+		e := bencode.Unmarshal(strings.NewReader(string(bencodedValue)), &torrentInfo)
+		if e != nil {
+			fmt.Println(e)
 			return
 		}
-		jsonOutput, _ := json.Marshal(decoded)
+		jsonOutput, _ := json.Marshal(torrentInfo)
 		fmt.Println(string(jsonOutput))
 	default:
 		fmt.Println("Unknown command: " + command)
