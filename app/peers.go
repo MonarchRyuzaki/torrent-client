@@ -90,6 +90,8 @@ func (p Peer) DownloadPiece(conn net.Conn, tf *TorrentFile, piece_index int) (in
 	const BlockSize = 16 * 1024
 	numBlocks := (piece_length + BlockSize - 1) / BlockSize
 
+	conn.SetDeadline(time.Now().Add(30 * time.Second))
+
 	for i := range numBlocks {
 		blockPayload := make([]byte, 12)
 
@@ -134,6 +136,8 @@ func (p Peer) DownloadPiece(conn net.Conn, tf *TorrentFile, piece_index int) (in
 		copy(buf[block_begin:block_begin+uint32(block_length)], block_data)
 		i++
 	}
+
+	conn.SetDeadline(time.Time{})
 
 	ok, err := verifyIntegrityOfPiece(buf, tf.PieceHashes[piece_index])
 	if err != nil {
