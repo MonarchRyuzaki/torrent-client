@@ -6,7 +6,7 @@ func (b Bitfield) HasPiece(index int) bool {
 	byteIndex := index / 8
 	byteOffset := index % 8
 
-	if byteIndex < 0 || byteIndex > len(b) {
+	if byteIndex < 0 || byteIndex >= len(b) {
 		return false
 	}
 
@@ -17,7 +17,7 @@ func (b Bitfield) SetPiece(index int) {
 	byteIndex := index / 8
 	byteOffset := index % 8
 
-	if byteIndex < 0 || byteIndex > len(b) {
+	if byteIndex < 0 || byteIndex >= len(b) {
 		return
 	}
 
