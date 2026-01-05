@@ -86,19 +86,22 @@ func DownloadManager(tf *TorrentFile, peers []Peer) {
 						pc.mu[peerIdx].Lock()
 						defer pc.mu[peerIdx].Unlock()
 
-						peers[peerIdx].Status = 0
-
-						ds.mu.Lock()
 						if err != nil {
 							fmt.Println("Download Failed:", err)
-							ds.pieceStatus[pieceIdx] = 0
+							pc.pConn[peer_index].Close()
+							peers[peer_index].Status = 2
+							ds.mu.Lock()
+							ds.pieceStatus[piece_index] = 0
+							ds.mu.Unlock()
 						} else {
+							ds.mu.Lock()
+							peers[peerIdx].Status = 0
 							ds.pieceLength[pieceIdx] = len
 							ds.pieceStatus[pieceIdx] = 2
 							ds.numOfPiecesLeft--
 							fmt.Printf("Piece %d Done. Left: %d\n", pieceIdx, ds.numOfPiecesLeft)
+							ds.mu.Unlock()
 						}
-						ds.mu.Unlock()
 
 					}(peer_index, piece_index)
 					assigned = true
@@ -114,7 +117,9 @@ func DownloadManager(tf *TorrentFile, peers []Peer) {
 	}
 
 	for peer_index := range peers {
-		pc.pConn[peer_index].Close()
+		if pc.pConn[peer_index] != nil {
+			pc.pConn[peer_index].Close()
+		}
 	}
 
 	mergePieces(tf, &ds)

@@ -73,6 +73,7 @@ func (p *Peer) EstablishHandshake() (net.Conn, error) {
 			ok = true
 		}
 	}
+	conn.SetDeadline(time.Time{})
 	return conn, nil
 }
 
