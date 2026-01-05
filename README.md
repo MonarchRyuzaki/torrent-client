@@ -6,6 +6,7 @@ This is a custom BitTorrent client built from scratch in Go. It supports the cor
 
 The goal of this project was not just to download a file, but to engineer a robust Concurrent Distributed System that can handle the chaos of real-world networking (timeouts, choked peers, and dropped connections).
 
+> **Note**: I'm still relatively new to Go, so if you spot any anti-patterns, concurrency issues, or opportunities for improvement, I'd love to hear your feedback! Code reviews and suggestions are always welcome.
 
 ## 📖 The Story Behind This Project
 
