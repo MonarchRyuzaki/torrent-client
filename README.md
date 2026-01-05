@@ -58,9 +58,11 @@ I chose a Central Dispatcher (Push) architecture over a Worker Queue (Pull).
    |---> On Failure: Locks ds.mu → Resets Piece #5 → Kills Peer A
 ```
 
-## ⚔️ Bugs & Trade-offs
+## ⚔️ 3. Bugs & Trade-offs
 
-The hardest part wasn't the protocol spec—it was the implementation details. Here are the specific concurrency battles I fought.
+The hardest part wasn't the protocol spec—it was the implementation details. As I dove deeper into distributed systems and Go's concurrency primitives, I decided to document every bug I encountered. This serves as both a learning log and a reference for future projects where I'll inevitably face similar challenges.
+
+Here are the key bugs I encountered:
 
 ### 🐛 Bug 1: Sequential Concurrency
 
