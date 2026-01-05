@@ -88,10 +88,10 @@ func DownloadManager(tf *TorrentFile, peers []Peer) {
 
 						if err != nil {
 							fmt.Println("Download Failed:", err)
-							pc.pConn[peer_index].Close()
-							peers[peer_index].Status = 2
+							pc.pConn[peerIdx].Close()
+							peers[peerIdx].Status = 2
 							ds.mu.Lock()
-							ds.pieceStatus[piece_index] = 0
+							ds.pieceStatus[pieceIdx] = 0
 							ds.mu.Unlock()
 						} else {
 							ds.mu.Lock()
