@@ -14,9 +14,10 @@ import (
 )
 
 type Peer struct {
-	IP     net.IP
-	Port   uint16
-	PeerID [20]byte
+	IP       net.IP
+	Port     uint16
+	PeerID   [20]byte
+	Bitfield Bitfield
 }
 
 func (p *Peer) String() string {
@@ -54,6 +55,13 @@ func (p *Peer) Download(tf *TorrentFile, piece_index int) {
 	if err != nil {
 		fmt.Println("Cant Read Bitfield Message", err)
 		return
+	}
+
+	if msg != nil && msg.ID == 5 {
+		p.Bitfield = Bitfield(msg.Payload)
+		fmt.Println("Received BitField Vector")
+	} else {
+		fmt.Printf("Expected Bitfield, got ID %d\n", msg.ID)
 	}
 
 	fmt.Printf("Received Message: ID %d (Bitfield)\n", msg.ID)
