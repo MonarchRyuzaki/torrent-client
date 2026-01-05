@@ -100,8 +100,9 @@ func (tr *TrackerResponse) extractPeerIps() ([]Peer, error) {
 		end := start + PeerSize
 		chunk := []byte(tr.Peers[start:end])
 		newPeer := Peer{
-			IP:   net.IPv4(chunk[0], chunk[1], chunk[2], chunk[3]),
-			Port: uint16(binary.BigEndian.Uint16(chunk[4:6])),
+			IP:     net.IPv4(chunk[0], chunk[1], chunk[2], chunk[3]),
+			Port:   uint16(binary.BigEndian.Uint16(chunk[4:6])),
+			Status: 2,
 		}
 		peers = append(peers, newPeer)
 	}

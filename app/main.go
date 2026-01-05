@@ -277,6 +277,31 @@ func main() {
 			peer.Download(tf, piece_index)
 			fmt.Printf("%s", peer.String())
 		}
+	case "download_file":
+		torrentFile := os.Args[2]
+		bencodedValue, err := os.ReadFile(torrentFile)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		torrentInfo := BencodeFile{}
+		e := bencode.Unmarshal(strings.NewReader(string(bencodedValue)), &torrentInfo)
+		if e != nil {
+			fmt.Println(e)
+			return
+		}
+		tf, e := torrentInfo.toTorrentFile()
+		if e != nil {
+			fmt.Println(e)
+			return
+		}
+		peers, er := tf.getPeers()
+		if er != nil {
+			fmt.Println(er)
+			return
+		}
+		handshake.prepareHandshakeMessage()
+		DownloadManager(tf, peers)
 	default:
 		fmt.Println("Unknown command: " + command)
 		os.Exit(1)
